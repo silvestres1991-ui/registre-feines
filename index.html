@@ -1,0 +1,402 @@
+```html
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registre de feines</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  padding: 30px;
+  background: #f5f5f5;
+}
+
+h1 {
+  font-size: 28px;
+}
+
+button {
+  font-size: 22px;
+  padding: 18px 30px;
+  margin: 20px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+}
+
+#estat {
+  font-size: 20px;
+  margin: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🎙️ Registre de feines</h1>
+
+<div id="pregunta">Prem el botó per començar</div>
+
+<button onclick="comencar()">🎤 Començar registre</button>
+
+<div id="estat"></div>
+
+<script>
+
+const URL_SCRIPT =
+"https://script.google.com/macros/s/AKfycbyCn9UPJIuY91m9iBzuOXmBFqf4bHw_80gJY0ZyhK91x1CrucWFh2IcyeJXIxkkDfuD/exec";
+
+let dades = {};
+
+let preguntes = [
+  ["client", "Quin és el client?"],
+  ["lloc", "A quin lloc has fet la feina?"],
+  ["feina", "Quina feina has realitzat?"],
+  ["hora_inici", "A quina hora has començat?"],
+  ["hora_final", "A quina hora has acabat?"],
+  ["material", "Quin material has utilitzat?"]
+];
+
+let pas = 0;
+let recognition;
+let escoltant = false;
+
+function crearReconeixement() {
+
+  const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    document.getElementById("estat").innerText =
+      "Aquest navegador no permet reconeixement de veu.";
+    return null;
+  }
+
+  recognition = new SpeechRecognition();
+
+  recognition.lang = "ca-ES";
+  recognition.continuous = false;
+  recognition.interimResults = false;
+
+  recognition.onstart = function() {
+    escoltant = true;
+    document.getElementById("estat").innerText =
+      "🎤 T'estic escoltant...";
+  };
+
+  recognition.onresult = function(event) {
+
+    escoltant = false;
+
+    const resposta =
+      event.results[0][0].transcript.trim();
+
+    processarResposta(resposta);
+  };
+
+  recognition.onerror = function(event) {
+
+    escoltant = false;
+
+    document.getElementById("estat").innerText =
+      "❌ Error del micròfon: " + event.error;
+  };
+
+  recognition.onend = function() {
+    escoltant = false;
+  };
+
+  return recognition;
+}
+
+
+function parlar(text, callback) {
+
+  document.getElementById("pregunta").innerText = text;
+
+  const veu = new SpeechSynthesisUtterance(text);
+
+  veu.lang = "ca-ES";
+  veu.rate = 0.95;
+
+  veu.onend = function() {
+
+    setTimeout(function() {
+
+      if (recognition && !escoltant) {
+        try {
+          recognition.start();
+        } catch(e) {}
+      }
+
+    }, 300);
+
+  };
+
+  speechSynthesis.cancel();
+  speechSynthesis.speak(veu);
+}
+
+
+function començarEscolta() {
+
+  if (!recognition) return;
+
+  try {
+    recognition.start();
+  } catch(e) {}
+}
+
+
+function comencar() {
+
+  dades = {};
+  pas = 0;
+
+  recognition = crearReconeixement();
+
+  if (!recognition) return;
+
+  document.getElementById("estat").innerText =
+    "Activant micròfon...";
+
+  // Primera activació directa després del clic
+  try {
+    recognition.start();
+  } catch(e) {}
+
+  recognition.onstart = function() {
+
+    escoltant = true;
+
+    document.getElementById("estat").innerText =
+      "🎤 Micròfon activat";
+
+    setTimeout(function() {
+
+      if (recognition && escoltant) {
+        recognition.stop();
+      }
+
+      setTimeout(function() {
+        parlar(preguntes[pas][1]);
+      }, 300);
+
+    }, 500);
+
+  };
+}
+
+
+function processarResposta(resposta) {
+
+  const pregunta = preguntes[pas];
+  const camp = pregunta[0];
+
+  dades[camp] = resposta;
+
+  pas++;
+
+  if (pas < preguntes.length) {
+
+    parlar(preguntes[pas][1]);
+
+  } else {
+
+    preguntarLlogat();
+  }
+}
+
+
+function preguntarLlogat() {
+
+  parlar("Hi ha material llogat?");
+
+  recognition.onresult = function(event) {
+
+    const resposta =
+      event.results[0][0].transcript
+      .trim()
+      .toLowerCase();
+
+    dades.material_llogat = resposta;
+
+    if (
+      resposta.includes("sí") ||
+      resposta.includes("si")
+    ) {
+
+      parlar("Quin material has llogat?");
+
+      recognition.onresult = function(event) {
+
+        dades.material_llogat_quin =
+          event.results[0][0].transcript.trim();
+
+        preguntarFeinaNova();
+
+      };
+
+    } else {
+
+      dades.material_llogat_quin = "";
+      preguntarFeinaNova();
+
+    }
+  };
+}
+
+
+function preguntarFeinaNova() {
+
+  parlar("Hi ha alguna feina nova per aquest client?");
+
+  recognition.onresult = function(event) {
+
+    const resposta =
+      event.results[0][0].transcript
+      .trim()
+      .toLowerCase();
+
+    dades.feina_nova = resposta;
+
+    if (
+      resposta.includes("sí") ||
+      resposta.includes("si")
+    ) {
+
+      parlar("Quina feina nova?");
+
+      recognition.onresult = function(event) {
+
+        dades.feina_nova_quina =
+          event.results[0][0].transcript.trim();
+
+        preguntarMaterialPendent();
+
+      };
+
+    } else {
+
+      dades.feina_nova_quina = "";
+      preguntarMaterialPendent();
+
+    }
+  };
+}
+
+
+function preguntarMaterialPendent() {
+
+  parlar("Hi ha algun material pendent de demanar?");
+
+  recognition.onresult = function(event) {
+
+    const resposta =
+      event.results[0][0].transcript
+      .trim()
+      .toLowerCase();
+
+    dades.material_pendent = resposta;
+
+    if (
+      resposta.includes("sí") ||
+      resposta.includes("si")
+    ) {
+
+      parlar("Quin material queda pendent de demanar?");
+
+      recognition.onresult = function(event) {
+
+        dades.material_pendent_quin =
+          event.results[0][0].transcript.trim();
+
+        preguntarObservacions();
+
+      };
+
+    } else {
+
+      dades.material_pendent_quin = "";
+      preguntarObservacions();
+
+    }
+  };
+}
+
+
+function preguntarObservacions() {
+
+  parlar("Tens alguna observació?");
+
+  recognition.onresult = function(event) {
+
+    dades.observacions =
+      event.results[0][0].transcript.trim();
+
+    guardar();
+  };
+}
+
+
+function guardar() {
+
+  dades.material_llogat =
+    dades.material_llogat || "";
+
+  dades.material_llogat_quin =
+    dades.material_llogat_quin || "";
+
+  dades.feina_nova =
+    dades.feina_nova || "";
+
+  dades.feina_nova_quina =
+    dades.feina_nova_quina || "";
+
+  dades.material_pendent =
+    dades.material_pendent || "";
+
+  dades.material_pendent_quin =
+    dades.material_pendent_quin || "";
+
+  dades.observacions =
+    dades.observacions || "";
+
+  const formulari = document.createElement("form");
+
+  formulari.method = "POST";
+  formulari.action = URL_SCRIPT;
+  formulari.target = "enviament";
+
+  const input = document.createElement("input");
+
+  input.type = "hidden";
+  input.name = "dades";
+  input.value = JSON.stringify(dades);
+
+  formulari.appendChild(input);
+
+  document.body.appendChild(formulari);
+
+  formulari.submit();
+
+  document.getElementById("pregunta").innerText =
+    "✅ Feina registrada!";
+
+  document.getElementById("estat").innerText =
+    "Les dades s'han guardat al Google Sheet.";
+
+  formulari.remove();
+}
+
+</script>
+
+<iframe name="enviament" style="display:none"></iframe>
+
+</body>
+</html>
+```
