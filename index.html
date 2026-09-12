@@ -3,8 +3,11 @@
 <html lang="ca">
 
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
 
 <title>Registre de feines</title>
 
@@ -57,6 +60,7 @@ button:disabled {
 }
 
 </style>
+
 </head>
 
 
@@ -64,22 +68,30 @@ button:disabled {
 
 <h1>🎤 Registre de feines</h1>
 
+
 <div id="pregunta">
   Prem «Començar registre»
 </div>
 
+
 <div id="estat"></div>
 
-<button id="boto" onclick="comencar()">
+
+<button id="boto"
+        onclick="comencar()">
+
   🎤 Començar registre
+
 </button>
 
-<button class="prova" onclick="provaEnviar()">
+
+<button class="prova"
+        onclick="provaEnviar()">
+
   🧪 PROVA ENVIAMENT
+
 </button>
 
-
-<!-- Enviament ocult al Google Apps Script -->
 
 <iframe
   name="enviamentOcult"
@@ -104,6 +116,10 @@ let pas = 0;
 let dades = {};
 
 let reconeixement = null;
+
+/* Moment exacte en què comença el registre */
+
+let momentIniciRegistre = null;
 
 
 /* =====================================================
@@ -160,7 +176,7 @@ function esSi(text) {
 
 
 /* =====================================================
-   COMENÇAR
+   COMENÇAR REGISTRE
 ===================================================== */
 
 function comencar() {
@@ -169,10 +185,21 @@ function comencar() {
 
   pas = 0;
 
+
+  /*
+   * GUARDEM EL MOMENT EXACTE
+   * EN QUÈ COMENÇA EL REGISTRE
+   */
+
+  momentIniciRegistre = new Date();
+
+
   document.getElementById("boto").disabled = true;
+
 
   document.getElementById("estat").innerText =
     "Preparant registre...";
+
 
   preguntar();
 
@@ -255,8 +282,6 @@ function preguntar() {
     pregunta;
 
 
-  /* 🔊 PARLAR */
-
   parlar(pregunta);
 
 }
@@ -267,8 +292,6 @@ function preguntar() {
 ===================================================== */
 
 function parlar(text) {
-
-  /* Aturar qualsevol veu anterior */
 
   window.speechSynthesis.cancel();
 
@@ -288,26 +311,12 @@ function parlar(text) {
 
   veu.onend = function() {
 
-    /*
-
-      Quan acaba de parlar,
-      comencem a escoltar.
-
-    */
-
     escoltar();
 
   };
 
 
   veu.onerror = function() {
-
-    /*
-
-      Si el navegador té algun problema
-      amb la veu, igualment intentem escoltar.
-
-    */
 
     escoltar();
 
@@ -394,13 +403,6 @@ function escoltar() {
       document.getElementById("estat").innerText =
         "❌ Error de veu: " + event.error;
 
-
-      /*
-
-        Tornem a intentar escoltar
-        si és un error temporal.
-
-      */
 
       if (
         event.error === "no-speech" ||
@@ -655,6 +657,33 @@ function guardar() {
     "Enviant les dades al Google Sheet...";
 
 
+  /*
+   * DATA I HORA EXACTES
+   * DEL MOMENT EN QUÈ S'HA COMENÇAT
+   * EL REGISTRE
+   */
+
+  if (momentIniciRegistre) {
+
+    dades.data_registre =
+      momentIniciRegistre.toLocaleDateString(
+        "ca-ES"
+      );
+
+
+    dades.hora_registre =
+      momentIniciRegistre.toLocaleTimeString(
+        "ca-ES",
+        {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit"
+        }
+      );
+
+  }
+
+
   console.log(
     "DADES A ENVIAR:",
     dades
@@ -672,16 +701,6 @@ function guardar() {
   formulari.action =
     URL_SCRIPT;
 
-
-  /*
-
-    IMPORTANT:
-
-    NO utilitzem _blank.
-
-    Enviem al iframe ocult.
-
-  */
 
   formulari.target =
     "enviamentOcult";
@@ -730,7 +749,7 @@ function guardar() {
 
 
 /* =====================================================
-   PROVA
+   PROVA D'ENVIAMENT
 ===================================================== */
 
 function provaEnviar() {
@@ -780,6 +799,15 @@ function provaEnviar() {
   };
 
 
+  /*
+   * Per a la prova també posem
+   * la data i hora actual.
+   */
+
+  momentIniciRegistre =
+    new Date();
+
+
   guardar();
 
 }
@@ -791,3 +819,4 @@ function provaEnviar() {
 
 </html>
 ```
+
