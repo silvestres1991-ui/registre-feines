@@ -728,14 +728,21 @@ function guardar() {
   document.body.appendChild(formulari);
 
 
-  formulari.submit();
+formulari.submit();
 
+document.getElementById("pregunta").innerText =
+  "✅ Registre enviat";
 
+document.getElementById("estat").innerText =
+  "Les dades s'estan enviant al Google Sheet...";
+
+document.getElementById("boto").disabled = false;
+
+// No eliminem el formulari immediatament.
+// Esperem que el navegador faci el POST.
+setTimeout(function() {
   formulari.remove();
-
-
-  document.getElementById("pregunta").innerText =
-    "✅ Registre enviat";
+}, 3000);
 
 
   document.getElementById("estat").innerText =
