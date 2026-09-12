@@ -1,176 +1,114 @@
+```html
 <!DOCTYPE html>
 <html lang="ca">
 
 <head>
-
 <meta charset="UTF-8">
-
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Registre de feines</title>
 
 <style>
 
 body {
-
   font-family: Arial, sans-serif;
-
   max-width: 600px;
-
   margin: 40px auto;
-
   padding: 20px;
-
   text-align: center;
-
 }
 
 h1 {
-
   margin-bottom: 30px;
-
 }
 
 #pregunta {
-
   font-size: 24px;
-
   font-weight: bold;
-
   margin: 30px 0;
-
 }
 
 #estat {
-
   margin: 20px 0;
-
   color: #555;
-
 }
 
 button {
-
   font-size: 20px;
-
   padding: 15px 25px;
-
   margin: 10px;
-
   border-radius: 10px;
-
   border: none;
-
   cursor: pointer;
-
 }
 
 #boto {
-
   background: #222;
-
   color: white;
-
 }
 
 .prova {
-
   background: #ddd;
-
   color: #222;
-
 }
 
 button:disabled {
-
   opacity: 0.5;
-
 }
 
 </style>
-
 </head>
 
 
 <body>
 
-
 <h1>🎤 Registre de feines</h1>
 
-
 <div id="pregunta">
-
   Prem «Començar registre»
-
 </div>
-
 
 <div id="estat"></div>
 
-
-<button id="boto"
-        onclick="comencar()">
-
+<button id="boto" onclick="comencar()">
   🎤 Començar registre
-
 </button>
 
-
-<button class="prova"
-        onclick="provaEnviar()">
-
+<button class="prova" onclick="provaEnviar()">
   🧪 PROVA ENVIAMENT
-
 </button>
 
 
-<!--
-
-  IFRAME OCULT.
-
-  Serveix perquè el formulari s'enviï
-  sense obrir cap pestanya nova.
-
--->
+<!-- Enviament ocult al Google Apps Script -->
 
 <iframe
-
   name="enviamentOcult"
-
   id="enviamentOcult"
-
   style="display:none;">
-
 </iframe>
 
 
 <script>
 
 
-const URL_SCRIPT =
+/* =====================================================
+   CONFIGURACIÓ
+===================================================== */
 
-"https://script.google.com/macros/s/AKfycbyCn9UPJIuY91m9iBzuOXmBFqf4bHw_80gJY0ZyhK91x1CrucWFh2IcyeJXIxkkDfuD/exec";
+const URL_SCRIPT =
+"https://script.google.com/macros/s/AKfycbyCn9UPJIuY91m9iBzuOXmBFqf4bHw_80JYg0ZyhK91x1CrucWFh2IcyeJXIxkkDfuD/exec";
 
 
 let pas = 0;
 
-
 let dades = {};
-
 
 let reconeixement = null;
 
 
-let escoltant = false;
-
-
-
-/*
-
-  PREGUNTES PRINCIPALS
-
-*/
+/* =====================================================
+   PREGUNTES
+===================================================== */
 
 const preguntes = [
 
@@ -189,84 +127,41 @@ const preguntes = [
 ];
 
 
-
-/*
-
-  NORMALITZAR TEXT
-
-*/
+/* =====================================================
+   NORMALITZAR TEXT
+===================================================== */
 
 function normalitzar(text) {
 
   return text
-
     .toLowerCase()
-
     .normalize("NFD")
-
     .replace(/[\u0300-\u036f]/g, "")
-
     .trim();
 
 }
 
 
-
-/*
-
-  DETECTAR SI
-
-*/
+/* =====================================================
+   DETECTAR SÍ
+===================================================== */
 
 function esSi(text) {
 
   const t = normalitzar(text);
 
   return (
-
     t === "si" ||
-
     t.startsWith("si ") ||
-
-    t.startsWith("sí ") ||
-
-    t.includes("si,") ||
-
-    t.includes("sí,")
-
+    t.includes("si,")
   );
 
 }
 
 
-
-/*
-
-  DETECTAR NO
-
-*/
-
-function esNo(text) {
-
-  const t = normalitzar(text);
-
-  return (
-
-    t === "no" ||
-
-    t.startsWith("no ")
-
-  );
-
-}
-
-
-
-/*
-
-  COMENÇAR REGISTRE
-
-*/
+/* =====================================================
+   COMENÇAR
+===================================================== */
 
 function comencar() {
 
@@ -277,23 +172,18 @@ function comencar() {
   document.getElementById("boto").disabled = true;
 
   document.getElementById("estat").innerText =
-
-    "🎤 Preparant registre...";
+    "Preparant registre...";
 
   preguntar();
 
 }
 
 
-
-/*
-
-  FER LA PREGUNTA ACTUAL
-
-*/
+/* =====================================================
+   PREGUNTAR
+===================================================== */
 
 function preguntar() {
-
 
   let pregunta = "";
 
@@ -308,7 +198,6 @@ function preguntar() {
   else if (pas === 6) {
 
     pregunta =
-
       "Hi ha material llogat?";
 
   }
@@ -317,7 +206,6 @@ function preguntar() {
   else if (pas === 7) {
 
     pregunta =
-
       "Quin material has llogat?";
 
   }
@@ -326,7 +214,6 @@ function preguntar() {
   else if (pas === 8) {
 
     pregunta =
-
       "Hi ha alguna feina nova per aquest client?";
 
   }
@@ -335,7 +222,6 @@ function preguntar() {
   else if (pas === 9) {
 
     pregunta =
-
       "Quina feina nova?";
 
   }
@@ -344,7 +230,6 @@ function preguntar() {
   else if (pas === 10) {
 
     pregunta =
-
       "Hi ha algun material pendent de demanar?";
 
   }
@@ -353,7 +238,6 @@ function preguntar() {
   else if (pas === 11) {
 
     pregunta =
-
       "Quin material queda pendent de demanar?";
 
   }
@@ -362,45 +246,95 @@ function preguntar() {
   else if (pas === 12) {
 
     pregunta =
-
       "Tens alguna observació?";
 
   }
 
 
   document.getElementById("pregunta").innerText =
-
     pregunta;
 
 
-  escoltar(pregunta);
+  /* 🔊 PARLAR */
+
+  parlar(pregunta);
 
 }
 
 
+/* =====================================================
+   PARLAR
+===================================================== */
 
-/*
+function parlar(text) {
 
-  ESCOLTAR RESPOSTA
+  /* Aturar qualsevol veu anterior */
 
-*/
+  window.speechSynthesis.cancel();
 
-function escoltar(pregunta) {
+
+  const veu =
+    new SpeechSynthesisUtterance(text);
+
+
+  veu.lang = "ca-ES";
+
+  veu.rate = 0.95;
+
+  veu.pitch = 1;
+
+  veu.volume = 1;
+
+
+  veu.onend = function() {
+
+    /*
+
+      Quan acaba de parlar,
+      comencem a escoltar.
+
+    */
+
+    escoltar();
+
+  };
+
+
+  veu.onerror = function() {
+
+    /*
+
+      Si el navegador té algun problema
+      amb la veu, igualment intentem escoltar.
+
+    */
+
+    escoltar();
+
+  };
+
+
+  window.speechSynthesis.speak(veu);
+
+}
+
+
+/* =====================================================
+   ESCOLTAR
+===================================================== */
+
+function escoltar() {
 
 
   if (
-
-    !("webkitSpeechRecognition" in window)
-
-    &&
-
+    !("webkitSpeechRecognition" in window) &&
     !("SpeechRecognition" in window)
-
   ) {
 
     document.getElementById("estat").innerText =
-
       "❌ Aquest navegador no permet reconeixement de veu.";
+
+    document.getElementById("boto").disabled = false;
 
     return;
 
@@ -408,60 +342,43 @@ function escoltar(pregunta) {
 
 
   const SpeechRecognition =
-
     window.SpeechRecognition ||
-
     window.webkitSpeechRecognition;
 
 
   reconeixement =
-
     new SpeechRecognition();
 
 
   reconeixement.lang =
-
     "ca-ES";
 
 
   reconeixement.continuous =
-
     false;
 
 
   reconeixement.interimResults =
-
     false;
 
 
   reconeixement.maxAlternatives =
-
     1;
 
 
-  escoltant = true;
-
-
   document.getElementById("estat").innerText =
-
     "🎤 Escoltant...";
 
 
   reconeixement.onresult =
-
     function(event) {
 
 
       const resposta =
-
         event.results[0][0].transcript.trim();
 
 
-      escoltant = false;
-
-
       document.getElementById("estat").innerText =
-
         "Resposta: " + resposta;
 
 
@@ -471,63 +388,78 @@ function escoltar(pregunta) {
 
 
   reconeixement.onerror =
-
     function(event) {
 
 
-      escoltant = false;
-
-
       document.getElementById("estat").innerText =
-
-        "❌ Error de veu: " +
-
-        event.error;
+        "❌ Error de veu: " + event.error;
 
 
-      setTimeout(function() {
+      /*
 
-        escoltar(pregunta);
+        Tornem a intentar escoltar
+        si és un error temporal.
 
-      }, 1000);
+      */
+
+      if (
+        event.error === "no-speech" ||
+        event.error === "aborted"
+      ) {
+
+        setTimeout(function() {
+
+          escoltar();
+
+        }, 800);
+
+      }
 
     };
 
 
   reconeixement.onend =
-
     function() {
 
-      escoltant = false;
+      reconeixement = null;
 
     };
 
 
-  reconeixement.start();
+  try {
+
+    reconeixement.start();
+
+  }
+
+  catch(error) {
+
+    console.log(
+      "Error iniciant micròfon:",
+      error
+    );
+
+  }
 
 }
 
 
-
-/*
-
-  PROCESSAR RESPOSTA
-
-*/
+/* =====================================================
+   PROCESSAR RESPOSTA
+===================================================== */
 
 function processarResposta(resposta) {
 
 
+  /* PREGUNTES NORMALS */
+
   if (pas < preguntes.length) {
 
-
     const clau =
-
       preguntes[pas][0];
 
 
     dades[clau] =
-
       resposta;
 
 
@@ -542,18 +474,14 @@ function processarResposta(resposta) {
   }
 
 
-
   /* MATERIAL LLOGAT */
 
   if (pas === 6) {
 
 
     dades.material_llogat =
-
       esSi(resposta)
-
         ? "sí"
-
         : "no";
 
 
@@ -577,14 +505,12 @@ function processarResposta(resposta) {
   }
 
 
-
   /* QUIN MATERIAL LLOGAT */
 
   if (pas === 7) {
 
 
     dades.material_llogat_quin =
-
       resposta;
 
 
@@ -598,18 +524,14 @@ function processarResposta(resposta) {
   }
 
 
-
   /* FEINA NOVA */
 
   if (pas === 8) {
 
 
     dades.feina_nova =
-
       esSi(resposta)
-
         ? "sí"
-
         : "no";
 
 
@@ -633,14 +555,12 @@ function processarResposta(resposta) {
   }
 
 
-
   /* QUINA FEINA NOVA */
 
   if (pas === 9) {
 
 
     dades.feina_nova_quina =
-
       resposta;
 
 
@@ -654,18 +574,14 @@ function processarResposta(resposta) {
   }
 
 
-
   /* MATERIAL PENDENT */
 
   if (pas === 10) {
 
 
     dades.material_pendent =
-
       esSi(resposta)
-
         ? "sí"
-
         : "no";
 
 
@@ -689,14 +605,12 @@ function processarResposta(resposta) {
   }
 
 
-
   /* QUIN MATERIAL PENDENT */
 
   if (pas === 11) {
 
 
     dades.material_pendent_quin =
-
       resposta;
 
 
@@ -710,14 +624,12 @@ function processarResposta(resposta) {
   }
 
 
-
   /* OBSERVACIONS */
 
   if (pas === 12) {
 
 
     dades.observacions =
-
       resposta;
 
 
@@ -728,47 +640,36 @@ function processarResposta(resposta) {
 }
 
 
-
-/*
-
-  GUARDAR AL GOOGLE SHEETS
-
-*/
+/* =====================================================
+   GUARDAR
+===================================================== */
 
 function guardar() {
 
 
   document.getElementById("pregunta").innerText =
-
     "💾 Enviant registre...";
 
 
   document.getElementById("estat").innerText =
-
     "Enviant les dades al Google Sheet...";
 
 
   console.log(
-
     "DADES A ENVIAR:",
-
     dades
-
   );
 
 
   const formulari =
-
     document.createElement("form");
 
 
   formulari.method =
-
     "POST";
 
 
   formulari.action =
-
     URL_SCRIPT;
 
 
@@ -776,34 +677,29 @@ function guardar() {
 
     IMPORTANT:
 
-    Ja NO obrim una pestanya nova.
+    NO utilitzem _blank.
 
     Enviem al iframe ocult.
 
   */
 
   formulari.target =
-
     "enviamentOcult";
 
 
   const camp =
-
     document.createElement("input");
 
 
   camp.type =
-
     "hidden";
 
 
   camp.name =
-
     "dades";
 
 
   camp.value =
-
     JSON.stringify(dades);
 
 
@@ -820,97 +716,65 @@ function guardar() {
 
 
   document.getElementById("pregunta").innerText =
-
     "✅ Registre enviat";
 
 
   document.getElementById("estat").innerText =
-
     "Les dades s'han enviat al Google Sheet.";
 
 
   document.getElementById("boto").disabled =
-
     false;
 
 }
 
 
-
-/*
-
-  PROVA D'ENVIAMENT
-
-*/
+/* =====================================================
+   PROVA
+===================================================== */
 
 function provaEnviar() {
 
 
   dades = {
 
-
     client:
-
       "CLIENT PROVA",
 
-
     lloc:
-
       "LLOC PROVA",
 
-
     feina:
-
       "FEINA PROVA",
 
-
     hora_inici:
-
       "08:00",
 
-
     hora_final:
-
       "10:00",
 
-
     material:
-
       "MATERIAL PROVA",
 
-
     material_llogat:
-
       "no",
-
 
     material_llogat_quin:
-
       "",
-
 
     feina_nova:
-
       "no",
-
 
     feina_nova_quina:
-
       "",
-
 
     material_pendent:
-
       "no",
 
-
     material_pendent_quin:
-
       "",
 
-
     observacions:
-
       "PROVA ENVIAMENT"
 
   };
@@ -923,7 +787,7 @@ function provaEnviar() {
 
 </script>
 
-
 </body>
 
 </html>
+```
